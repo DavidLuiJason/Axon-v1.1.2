@@ -24,6 +24,7 @@ import {
   Maximize2,
   Minimize2,
 } from 'lucide-react';
+import { saveFile } from '../utils/saveFile';
 
 interface CodebaseNode {
   name: string;
@@ -151,14 +152,7 @@ export const CodebaseScreen: React.FC = () => {
         }
       }
 
-      const downloadUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(downloadUrl);
+      await saveFile(blob, filename);
 
       setExportSuccess(true);
       setTimeout(() => setExportSuccess(false), 3000);

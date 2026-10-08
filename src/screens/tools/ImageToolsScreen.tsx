@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { SwipeableTabContainer } from '../../components/SwipeableTabContainer';
+import { saveFile } from '../../utils/saveFile';
 
 export interface ImageToolsScreenProps {
   initialTab?: 'convert' | 'compress' | 'blur' | 'collage';
@@ -96,12 +97,12 @@ export const ImageToolsScreen: React.FC<ImageToolsScreenProps> = ({ initialTab }
       ctx.drawImage(img, 0, 0);
 
       const ext = targetFormat === 'image/jpeg' ? 'jpg' : targetFormat === 'image/png' ? 'png' : 'webp';
-      const dataUrl = canvas.toDataURL(targetFormat, convertQuality);
-      const a = document.createElement('a');
-      a.href = dataUrl;
-      a.download = `${convertFileName}-converted.${ext}`;
-      a.click();
-      showToast(`Downloaded as ${ext.toUpperCase()}`);
+      const fileName = `${convertFileName}-converted.${ext}`;
+      canvas.toBlob(async (blob) => {
+        if (!blob) return;
+        await saveFile(blob, fileName);
+        showToast(`Downloaded as ${ext.toUpperCase()}`);
+      }, targetFormat, convertQuality);
     };
     img.src = convertImage;
   };
@@ -150,12 +151,11 @@ export const ImageToolsScreen: React.FC<ImageToolsScreenProps> = ({ initialTab }
     }
   }, [qualityLevel, scalePercent]);
 
-  const handleDownloadCompressed = () => {
+  const handleDownloadCompressed = async () => {
     if (!compressedDataUrl) return;
-    const a = document.createElement('a');
-    a.href = compressedDataUrl;
-    a.download = `axon-compressed.jpg`;
-    a.click();
+    const res = await fetch(compressedDataUrl);
+    const blob = await res.blob();
+    await saveFile(blob, 'axon-compressed.jpg');
     showToast('Compressed image downloaded');
   };
 
@@ -188,14 +188,13 @@ export const ImageToolsScreen: React.FC<ImageToolsScreenProps> = ({ initialTab }
     img.src = blurImage;
   }, [blurImage, blurRadius]);
 
-  const handleDownloadBlurred = () => {
+  const handleDownloadBlurred = async () => {
     if (!blurCanvasRef.current) return;
-    const dataUrl = blurCanvasRef.current.toDataURL('image/png');
-    const a = document.createElement('a');
-    a.href = dataUrl;
-    a.download = `axon-blurred.png`;
-    a.click();
-    showToast('Blurred image downloaded');
+    blurCanvasRef.current.toBlob(async (blob) => {
+      if (!blob) return;
+      await saveFile(blob, 'axon-blurred.png');
+      showToast('Blurred image downloaded');
+    }, 'image/png');
   };
 
   // 4. Collage handler
@@ -399,13 +398,12 @@ export const ImageToolsScreen: React.FC<ImageToolsScreenProps> = ({ initialTab }
     renderCollageOnCanvas();
   }, [collageImages, collageLayout, collageGap, collageBg]);
 
-  const handleDownloadCollage = () => {
+  const handleDownloadCollage = async () => {
     const url = collageDataUrl || collageCanvasRef.current?.toDataURL('image/png');
     if (!url || collageImages.length === 0) return;
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `axon-collage.png`;
-    a.click();
+    const res = await fetch(url);
+    const blob = await res.blob();
+    await saveFile(blob, 'axon-collage.png');
     showToast('Collage grid downloaded');
   };
 

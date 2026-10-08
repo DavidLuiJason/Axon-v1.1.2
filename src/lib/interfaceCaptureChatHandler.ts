@@ -98,7 +98,7 @@ export async function evaluateInterfaceCaptureChatCommand(
       // If PDF export requested
       if (isPdf) {
         const pdfDoc = await exportCapturesToPdf(report.results, 'AXON_Interface_Documentation.pdf');
-        triggerCaptureDownload(pdfDoc.dataUrl, pdfDoc.filename);
+        await triggerCaptureDownload(pdfDoc.dataUrl, pdfDoc.filename);
 
         attachments.push({
           name: pdfDoc.filename,
@@ -137,7 +137,7 @@ export async function evaluateInterfaceCaptureChatCommand(
       // If Long Image export requested
       if (isLongImage) {
         const stitched = await stitchCanvasesVertically(report.results, { format: 'png' });
-        triggerCaptureDownload(stitched.dataUrl, stitched.filename);
+        await triggerCaptureDownload(stitched.dataUrl, stitched.filename);
 
         attachments.push({
           name: stitched.filename,

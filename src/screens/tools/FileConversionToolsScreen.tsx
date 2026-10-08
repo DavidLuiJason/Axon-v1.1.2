@@ -15,6 +15,7 @@ import {
 import { jsPDF } from 'jspdf';
 import { useApp } from '../../context/AppContext';
 import { SwipeableTabContainer } from '../../components/SwipeableTabContainer';
+import { saveFile } from '../../utils/saveFile';
 
 export interface FileConversionToolsScreenProps {
   initialTab?: 'png2pdf' | 'pdf2txt' | 'csvjson' | 'txt2pdf';
@@ -75,7 +76,7 @@ export const FileConversionToolsScreen: React.FC<FileConversionToolsScreenProps>
     if (!imgForPdf) return;
     const img = new Image();
     img.crossOrigin = 'anonymous';
-    img.onload = () => {
+    img.onload = async () => {
       // Create jsPDF instance
       const doc = new jsPDF({
         orientation: pdfOrientation,
@@ -98,7 +99,9 @@ export const FileConversionToolsScreen: React.FC<FileConversionToolsScreenProps>
       const posY = pdfMargin + (availH - renderH) / 2;
 
       doc.addImage(imgForPdf, 'PNG', posX, posY, renderW, renderH);
-      doc.save(`${imgFileName}.pdf`);
+      const fileName = `${imgFileName}.pdf`;
+      const blob = doc.output('blob');
+      await saveFile(blob, fileName);
       showToast('PDF generated and downloaded');
     };
     img.src = imgForPdf;
@@ -177,15 +180,11 @@ export const FileConversionToolsScreen: React.FC<FileConversionToolsScreenProps>
     }
   };
 
-  const handleDownloadExtractedTxt = () => {
+  const handleDownloadExtractedTxt = async () => {
     if (!extractedText) return;
     const blob = new Blob([extractedText], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${pdfFileName ? pdfFileName.replace(/\.[^/.]+$/, '') : 'extracted'}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
+    const fileName = `${pdfFileName ? pdfFileName.replace(/\.[^/.]+$/, '') : 'extracted'}.txt`;
+    await saveFile(blob, fileName);
     showToast('Downloaded text file');
   };
 
@@ -265,7 +264,7 @@ export const FileConversionToolsScreen: React.FC<FileConversionToolsScreenProps>
   };
 
   // 4. TXT to PDF Handler
-  const handleGenerateTxtPdf = () => {
+  const handleGenerateTxtPdf = async () => {
     if (!txtContent) return;
     const doc = new jsPDF({
       orientation: 'p',
@@ -299,7 +298,9 @@ export const FileConversionToolsScreen: React.FC<FileConversionToolsScreenProps>
     const splitText = doc.splitTextToSize(txtContent, maxWidth);
     doc.text(splitText, margin, 100);
 
-    doc.save(`${pdfTitle.toLowerCase().replace(/\s+/g, '-') || 'document'}.pdf`);
+    const fileName = `${pdfTitle.toLowerCase().replace(/\s+/g, '-') || 'document'}.pdf`;
+    const blob = doc.output('blob');
+    await saveFile(blob, fileName);
     showToast('PDF exported successfully');
   };
 

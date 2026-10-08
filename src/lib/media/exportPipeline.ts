@@ -5,6 +5,7 @@
  */
 
 import { AssetManifestItem } from '../../types';
+import { saveFile } from '../../utils/saveFile';
 import {
   ExportFormat,
   MediaAsset,
@@ -320,23 +321,7 @@ export async function exportMediaAsset(
  * Shared browser download helper:
  * Triggers a user download prompt with proper filename and cleanup.
  */
-export function downloadExportResult(result: MediaExportResult): void {
-  if (typeof window === 'undefined' || typeof document === 'undefined') return;
-
-  const url = result.dataUrl || URL.createObjectURL(result.blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = result.filename;
-  anchor.style.display = 'none';
-  document.body.appendChild(anchor);
-  anchor.click();
-
-  setTimeout(() => {
-    try {
-      document.body.removeChild(anchor);
-      if (!result.dataUrl) {
-        URL.revokeObjectURL(url);
-      }
-    } catch (e) {}
-  }, 1500);
+export async function downloadExportResult(result: MediaExportResult): Promise<void> {
+  if (typeof window === 'undefined') return;
+  await saveFile(result.blob, result.filename);
 }

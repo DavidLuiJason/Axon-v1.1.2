@@ -23,6 +23,7 @@ import {
 import { useApp } from '../context/AppContext';
 import { AxonLogo } from '../components/AxonLogo';
 import { AIAccountsSettings } from '../components/AIAccountsSettings';
+import { saveFile } from '../utils/saveFile';
 import { IconPreset } from '../types';
 import { formatBytes } from '../lib/storageManifest';
 
@@ -113,15 +114,11 @@ export const SettingsScreen: React.FC = () => {
   };
 
   // Export JSON file download
-  const handleExportData = () => {
+  const handleExportData = async () => {
     const jsonStr = exportStateJson();
     const blob = new Blob([jsonStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `axon-workspace-backup-${new Date().toISOString().split('T')[0]}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    const fileName = `axon-workspace-backup-${new Date().toISOString().split('T')[0]}.json`;
+    await saveFile(blob, fileName);
     showToast('Workspace backup exported');
   };
 

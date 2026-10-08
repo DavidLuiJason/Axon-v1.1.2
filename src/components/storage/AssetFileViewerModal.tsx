@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { AssetManifestItem } from '../../types';
 import { formatBytes } from '../../lib/storageManifest';
+import { saveFile } from '../../utils/saveFile';
 import { ModalOverlayContainer } from '../ModalOverlayContainer';
 
 interface AssetFileViewerModalProps {
@@ -288,26 +289,16 @@ ${item.description || 'No direct text content attached. Asset registered in devi
     }
   }
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     try {
       const dlUrl = resolvedImageUrl || dataUrl;
       if (dlUrl) {
-        const link = document.createElement('a');
-        link.href = dlUrl;
-        link.download = item.name;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        const res = await fetch(dlUrl);
+        const blob = await res.blob();
+        await saveFile(blob, item.name);
       } else if (resolvedText) {
         const blob = new Blob([resolvedText], { type: item.mimeType || 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = item.name;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+        await saveFile(blob, item.name);
       }
     } catch (e) {
       console.error('Failed to download asset:', e);

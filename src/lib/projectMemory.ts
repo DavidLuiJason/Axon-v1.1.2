@@ -1,5 +1,6 @@
 import { ChatMessage, NoteItem, ProjectItem } from '../types';
 import { stripMarkdown } from './markdownUtils';
+import { saveFile } from '../utils/saveFile';
 
 export const DEFAULT_PROJECTS: ProjectItem[] = [
   {
@@ -167,16 +168,9 @@ export function synthesizeExecutiveSummary(
   return summary;
 }
 
-export function triggerFileDownload(filename: string, content: string, mimeType: string): void {
+export async function triggerFileDownload(filename: string, content: string, mimeType: string): Promise<void> {
   const blob = new Blob([content], { type: mimeType });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = filename;
-  document.body.appendChild(anchor);
-  anchor.click();
-  document.body.removeChild(anchor);
-  URL.revokeObjectURL(url);
+  await saveFile(blob, filename);
 }
 
 export const projectMemoryCapability = {

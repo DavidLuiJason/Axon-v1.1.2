@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { X, ZoomIn, ZoomOut, RotateCcw, Download, Maximize2 } from 'lucide-react';
+import { saveFile } from '../utils/saveFile';
 
 export interface ImageViewerModalProps {
   isOpen: boolean;
@@ -64,14 +65,12 @@ export const ImageViewerModal: React.FC<ImageViewerModalProps> = ({
     setPan({ x: 0, y: 0 });
   };
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     try {
-      const link = document.createElement('a');
-      link.href = imageUrl;
-      link.download = imageName || `image-${Date.now()}.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const fileName = imageName || `image-${Date.now()}.png`;
+      await saveFile(blob, fileName);
     } catch (err) {
       console.error('Failed to download image:', err);
     }

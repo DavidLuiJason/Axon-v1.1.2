@@ -188,9 +188,9 @@ export const InterfaceCaptureScreen: React.FC = () => {
     }
   };
 
-  const handleExportResultFile = (file: GeneratedResultFile) => {
+  const handleExportResultFile = async (file: GeneratedResultFile) => {
     if (!file.dataUrl) return;
-    triggerCaptureDownload(file.dataUrl, file.fileName);
+    await triggerCaptureDownload(file.dataUrl, file.fileName);
     showToast(`Downloaded ${file.fileName}`);
   };
 
@@ -200,15 +200,15 @@ export const InterfaceCaptureScreen: React.FC = () => {
     showToast(`Downloading ${downloadable.length} files...`);
     for (let i = 0; i < downloadable.length; i++) {
       const f = downloadable[i];
-      triggerCaptureDownload(f.dataUrl!, f.fileName);
+      await triggerCaptureDownload(f.dataUrl!, f.fileName);
       await new Promise((r) => setTimeout(r, 200));
     }
   };
 
-  const handleDownloadSingle = (result: CapturedInterfaceResult, formatOverride?: 'png' | 'jpg') => {
+  const handleDownloadSingle = async (result: CapturedInterfaceResult, formatOverride?: 'png' | 'jpg') => {
     const ext = formatOverride || (result.format === 'jpeg' ? 'jpg' : 'png');
     const filename = getSafeInterfaceFileName(result.name, ext);
-    triggerCaptureDownload(result.dataUrl, filename);
+    await triggerCaptureDownload(result.dataUrl, filename);
     showToast(`Downloaded ${filename}`);
   };
 
@@ -216,7 +216,7 @@ export const InterfaceCaptureScreen: React.FC = () => {
     if (capturedResults.length === 0) return;
     try {
       const longImg = await stitchCanvasesVertically(capturedResults);
-      triggerCaptureDownload(longImg.dataUrl, longImg.filename);
+      await triggerCaptureDownload(longImg.dataUrl, longImg.filename);
       showToast('Downloaded Long Image');
     } catch (err: any) {
       showToast(err?.message || 'Failed to stitch images');
@@ -227,7 +227,7 @@ export const InterfaceCaptureScreen: React.FC = () => {
     if (capturedResults.length === 0) return;
     try {
       const pdfDoc = await exportCapturesToPdf(capturedResults);
-      triggerCaptureDownload(pdfDoc.dataUrl, pdfDoc.filename);
+      await triggerCaptureDownload(pdfDoc.dataUrl, pdfDoc.filename);
       showToast('Downloaded PDF document');
     } catch (err: any) {
       showToast(err?.message || 'Failed to generate PDF');

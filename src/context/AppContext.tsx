@@ -102,6 +102,7 @@ import {
 } from '../lib/projectTimeline';
 import { fileIntelligence } from '../lib/fileIntelligence';
 import { formatChatCodeResponse } from '../utils/chatCodeFormatter';
+import { registerToastNotifier } from '../utils/saveFile';
 
 interface ConfirmationConfig {
   isOpen: boolean;
@@ -1700,12 +1701,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Toast
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const showToast = (msg: string) => {
+  const showToast = useCallback((msg: string) => {
     setToastMessage(msg);
     setTimeout(() => {
       setToastMessage((prev) => (prev === msg ? null : prev));
     }, 2800);
-  };
+  }, []);
+
+  useEffect(() => {
+    registerToastNotifier(showToast);
+    const onToast = (e: any) => {
+      if (e.detail) showToast(e.detail);
+    };
+    window.addEventListener('axon-toast', onToast);
+    return () => {
+      window.removeEventListener('axon-toast', onToast);
+    };
+  }, [showToast]);
 
   // Save to localStorage whenever data changes
   useEffect(() => {
@@ -3445,18 +3457,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     if (format === 'markdown') {
       const md = formatConversationAsMarkdown(projectMsgs, activeProject.name, activeProject.description);
-      triggerFileDownload(`${safeName}-chat-${dateStr}.md`, md, 'text/markdown');
+      await triggerFileDownload(`${safeName}-chat-${dateStr}.md`, md, 'text/markdown');
       showToast('Exported Markdown transcript');
     } else if (format === 'text') {
       const txt = formatConversationAsPlainText(projectMsgs, activeProject.name);
-      triggerFileDownload(`${safeName}-chat-${dateStr}.txt`, txt, 'text/plain');
+      await triggerFileDownload(`${safeName}-chat-${dateStr}.txt`, txt, 'text/plain');
       showToast('Exported Text file');
     } else if (format === 'json') {
       const json = formatConversationAsJson(projectMsgs, activeProject.name, activeProject.id);
-      triggerFileDownload(`${safeName}-chat-${dateStr}.json`, json, 'application/json');
+      await triggerFileDownload(`${safeName}-chat-${dateStr}.json`, json, 'application/json');
       showToast('Exported JSON data file');
     } else if (format === 'pdf') {
-      exportChatToPdf(projectMsgs, activeProject.name, activeProject.description);
+      await exportChatToPdf(projectMsgs, activeProject.name, activeProject.description);
       showToast('Exported Text PDF transcript');
     } else if (format === 'image-pdf') {
       showToast('Generating Image PDF...');

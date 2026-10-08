@@ -1,6 +1,7 @@
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { ScreenId } from '../types';
+import { saveFile } from '../utils/saveFile';
 import {
   AXON_INTERFACES,
   InterfaceMetadata,
@@ -1241,13 +1242,10 @@ export async function exportCapturesToPdf(
 /**
  * Triggers a browser download for a dataUrl.
  */
-export function triggerCaptureDownload(dataUrl: string, filename: string): void {
-  const anchor = document.createElement('a');
-  anchor.href = dataUrl;
-  anchor.download = filename;
-  document.body.appendChild(anchor);
-  anchor.click();
-  document.body.removeChild(anchor);
+export async function triggerCaptureDownload(dataUrl: string, filename: string): Promise<void> {
+  const res = await fetch(dataUrl);
+  const blob = await res.blob();
+  await saveFile(blob, filename);
 }
 
 export function buildResultFileFromCapture(

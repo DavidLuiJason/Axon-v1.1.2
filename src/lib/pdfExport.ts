@@ -1,12 +1,13 @@
 import { jsPDF } from 'jspdf';
 import { ChatMessage } from '../types';
 import { stripMarkdown } from './markdownUtils';
+import { saveFile } from '../utils/saveFile';
 
-export function exportChatToPdf(
+export async function exportChatToPdf(
   messages: ChatMessage[],
   projectName: string,
   projectDescription?: string
-): void {
+): Promise<void> {
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'pt',
@@ -119,7 +120,9 @@ export function exportChatToPdf(
   }
 
   const safeName = projectName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-  doc.save(`axon-chat-${safeName}-${Date.now()}.pdf`);
+  const fileName = `axon-chat-${safeName}-${Date.now()}.pdf`;
+  const blob = doc.output('blob');
+  await saveFile(blob, fileName);
 }
 
 /**
@@ -497,7 +500,9 @@ export async function exportChatToImagePdf(
   }
 
   const safeName = projectName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-  doc.save(`axon-visual-chat-${safeName}-${Date.now()}.pdf`);
+  const fileName = `axon-visual-chat-${safeName}-${Date.now()}.pdf`;
+  const blob = doc.output('blob');
+  await saveFile(blob, fileName);
 }
 
 
